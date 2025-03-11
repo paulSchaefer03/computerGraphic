@@ -241,7 +241,7 @@ struct Engine {
         static std::vector<Model> models_without_lights(_models.begin(), _models.end() - _lights.size());
         // handle all the inputs such as camera movement
         //ImGUI for all Models without lights
-        _imGuiManager.newFrame(_models, _lights.size());
+        _imGuiManager.newFrame(_models, _lights.size(), _postProcess);
         execute_input();
 
         //Save the old view projection matrix for motion blur

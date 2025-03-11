@@ -81,6 +81,8 @@ struct PostProcess {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, _motionVectorTexture);
         glUniform1i(glGetUniformLocation(program_id, "motionVectorTexture"), 1);
+        glUniform1f(glGetUniformLocation(program_id, "motionBlurStrength"), _motionBlurStrength);
+        glUniform1f(glGetUniformLocation(program_id, "motionBlurSamples"), _motionBlurSamples);
 
     }
 
@@ -96,5 +98,7 @@ struct PostProcess {
     GLuint _motionVectorFBO;
     GLuint _motionVectorTexture;
     float _aberrationStrength = 0.002;
+    float _motionBlurStrength = 0.00125;
+    float _motionBlurSamples = 8;
 
 };

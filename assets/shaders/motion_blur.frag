@@ -3,12 +3,13 @@ out vec4 FragColor;
 in vec2 TexCoords;
 uniform sampler2D screenTexture;
 uniform sampler2D motionVectorTexture;
-
+uniform float motionBlurStrength;
+uniform float motionBlurSamples;
 
 void main() {
     vec3 color = vec3(0.0);
     float totalWeight = 0.0;
-    float samples = 8.0; 
+    float samples = motionBlurSamples; 
 
     // Lese Motion-Vektor
     vec2 motionVector = texture(motionVectorTexture, TexCoords).rg;
@@ -20,7 +21,7 @@ void main() {
     }
 
     // Begrenze Motion Vectors weiter
-    motionVector = clamp(motionVector, -0.0012, 0.0012);
+    motionVector = clamp(motionVector, -motionBlurStrength, motionBlurStrength);
 
     // Bessere Gewichtung: Zentrum stärker, Ränder schwächer
     for (float i = -samples / 2; i <= samples / 2; i++) {

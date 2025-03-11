@@ -8,6 +8,7 @@ using namespace gl46core;
 #include "time.hpp"
 #include "window.hpp"
 #include "entities/model.hpp"
+#include "entities/postProcess.hpp"
 
 struct ImGuiManager {
     void init(Window& window) {
@@ -16,11 +17,12 @@ struct ImGuiManager {
         ImGui_ImplOpenGL3_Init();
     }
     
-    void newFrame(std::vector<Model>& models, int number_of_lights) {
+    void newFrame(std::vector<Model>& models, int number_of_lights, PostProcess& postProcess) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         renderUI(models, number_of_lights);
+        postProcessingOptions(postProcess);
         ImGui::Render();
     }
       
@@ -38,9 +40,10 @@ struct ImGuiManager {
         ImGui::DestroyContext();
     }
 
-    void renderAberationUI(float& aberrationStrength) {
-        ImGui::Begin("Aberration window");
-        ImGui::SliderFloat("Aberration Strength", &aberrationStrength, 0.0f, 1.0f);
+    void postProcessingOptions(PostProcess& postProcess) {
+        ImGui::Begin("Post-Processing Options");
+        ImGui::SliderFloat("Motion Blur Sample", &postProcess._motionBlurSamples, 4.0f, 128.0f);
+        ImGui::SliderFloat("Motion Blur Strength", &postProcess._motionBlurStrength, 0.0001f, 0.05f);
         ImGui::End();
     }
     
