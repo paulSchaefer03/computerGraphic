@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+build/
+bin/
+.vscode/
+.vs/
+assets/models/
+assets/textures/
+.cache/
+
