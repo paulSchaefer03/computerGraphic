@@ -370,7 +370,7 @@ void main() {
     vec3 color = ambient + Lo;
 
     // HDR Tone Mapping und Gamma-Korrektur
-    color = color / (color + vec3(1.0));
+    //color = color / (color + vec3(1.0));
     //color = pow(color, vec3(1.0 / 2.2));
     //gl_FragDepth = gl_FragCoord.z;
     //out_color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);

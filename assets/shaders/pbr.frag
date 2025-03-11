@@ -17,15 +17,14 @@ layout (location = 2) in vec4 in_col;
 layout (location = 3) in vec2 in_uv;
 layout (location = 4) in vec3 in_tan;
 layout (location = 5) in vec3 in_bit;
-layout (location = 6) in vec2 MotionVectorIn;  
 
 in vec3 fragTessPosition;
 in vec3 fragTessNormal;
 in vec2 fragTessUV;
 
 // Outputs
-out vec4 out_color;
-layout (location = 1) out vec2 MotionVector; // Bewegungsvektor
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 BrightColor; // Helligkeit
 // Uniforms
 
 layout (location = 16) uniform vec3 camera_pos;        // Kamera-Position
@@ -419,13 +418,19 @@ void main() {
 
     vec3 color = ambient + Lo;
 
+    //Test Helligkeit und Gausian Blur
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722)); // Helligkeitsberechnung
+    if (brightness > 1.0) {
+        BrightColor = vec4(color, 1.0); // Nur helle Bereiche speichern
+    } else {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0); // Sonst Schwarz speichern
+    }
+
     // HDR Tone Mapping und Gamma-Korrektur
-    color = color / (color + vec3(1.0));
+    //color = color / (color + vec3(1.0));
     //color = pow(color, vec3(1.0 / 2.2));
 
     out_color = vec4(color, 1.0);
-
-    MotionVector = MotionVectorIn; 
 
 /*     vec3 fragToLight = in_pos - lights[0].pos;
     float closestDepth = texture(tex_shadows[0], fragToLight).r;

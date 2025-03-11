@@ -40,11 +40,12 @@ struct Engine {
         _pipeline_motion_blur.init("../assets/shaders/motion_blur.vert", "../assets/shaders/motion_blur.frag");
         _pipeline_post_process.init("../assets/shaders/sRGBcorrect.vert", "../assets/shaders/sRGBcorrect.frag"); // Post-Processing Shader laden
         _pipeline_motion_blur_vectors.init("../assets/shaders/motion_vector.vert", "../assets/shaders/motion_vector.frag");
+        _pipeline_bloom_blur.init("../assets/shaders/bloom_blur.vert", "../assets/shaders/bloom_blur.frag");
         
         // create light and its shadow map
         _lights[0].init({+1.0, +3.0, -0.5}, {.992, .984, .827}, 100);
-        _lights[1].init({+3.0, +1.5, +4.0}, {.992, .984, .827}, 100);
-        _lights[2].init({-5.0, +1.6, +2.9}, {.992, .984, .827}, 100);
+        _lights[1].init({+3.0, +1.5, +4.0}, {3.992, 4.984, 2.827}, 100);
+        _lights[2].init({-5.0, +1.6, +2.9}, {12.0, 12.0, 12.0}, 100);
         // create HDR environment map
         _hdr.init("../assets/textures/HDR/Old-Train-Nuernberg-4K.hdr");
         //other hdr textures
@@ -170,7 +171,9 @@ struct Engine {
         _pipeline_brdf_lut.bind();
         _hdr.ceateBRDFLUT();
 
+        _postProcess.initPingPongBuffer(_window_width, _window_height);
         _postProcess.initMotionVectorBuffer(_window_width, _window_height);
+
 
     }
     void upload_shadow_textures(GLuint shader_program) {
@@ -247,8 +250,8 @@ struct Engine {
         //Save the old view projection matrix for motion blur
         _camera.update();
         // update the rotation of the models
-        for(auto& models_without_lights: _models) {
-            models_without_lights._transform._rotation += Time::get_delta();
+        for(int i = 0; i < _models.size() - _lights.size(); i++) {
+            _models[i]._transform._rotation += Time::get_delta();
         }
         
         // draw shadows
@@ -380,13 +383,27 @@ struct Engine {
         glDepthFunc(GL_LESS); // Standard-Tiefe zurücksetzen
         
    }  
+        // Bloom-Blur
+        bool horizontal = true, first_iteration = true;
+        int blurAmount = 10;
+        _pipeline_bloom_blur.bind();
 
-        
+        for (int i = 0; i < blurAmount; i++) {
+            glBindFramebuffer(GL_FRAMEBUFFER, _postProcess._pingpongFBO[horizontal]); 
+            glUniform1i(glGetUniformLocation(_pipeline_bloom_blur._shader_program, "horizontal"), horizontal);
+            glBindTexture(GL_TEXTURE_2D, first_iteration ?  _postProcess._postProcessTextures[1] :  _postProcess._pingpongColorBuffers[!horizontal]);
+            renderFullscreenQuad();
+            horizontal = !horizontal;
+            if (first_iteration)
+                first_iteration = false;
+        }
+        _postProcess._finalBloomTexture = _postProcess._pingpongColorBuffers[!horizontal];
+
         // Post-Processing
         // Auf Standard-Framebuffer zurückwechseln
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, _window_width, _window_height);
-        //glClear(GL_COLOR_BUFFER_BIT);
+
         // Post-Processing Shader aktivieren
 /*         _pipeline_post_process.bind();
 
@@ -398,8 +415,8 @@ struct Engine {
         _postProcess.bind(_pipeline_motion_blur._shader_program);
         // Fullscreen-Quad rendern
         renderFullscreenQuad();
-        
-        
+
+
         //ImGui
         //No gamma correction for the UI(otherwise imGui will be double corrected) 
         glDisable(GL_FRAMEBUFFER_SRGB);
@@ -428,6 +445,7 @@ struct Engine {
     Pipeline _pipeline_post_process;
     Pipeline _pipeline_motion_blur_vectors;
     Pipeline _pipeline_motion_blur;
+    Pipeline _pipeline_bloom_blur;
 
     std::array<Light, 3> _lights;
     std::vector<Model> _models;

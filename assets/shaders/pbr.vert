@@ -15,7 +15,6 @@ layout (location = 2) out vec4 out_color;
 layout (location = 3) out vec2 out_uv;
 layout (location = 4) out vec3 out_tangent;
 layout (location = 5) out vec3 out_bitangent;
-layout (location = 6) out vec2 MotionVectorIn;
 // uniforms
 // mat4x4 takes up for locations, each location being 16 bytes
 layout (location = 0) uniform mat4x4 model_transform;
@@ -40,13 +39,4 @@ void main() {
     out_norm = normalize(mat3(normal_transform) * in_norm); 
     out_color = in_col;
     out_uv = in_uv;
-
-        // Transformiere Vertex-Position mit aktueller View-Projection-Matrix
-    vec4 currentPos = camera_perspective * camera_transform * vec4(in_pos, 1.0);
-    
-    // Transformiere die gleiche Position mit der vorherigen View-Projection-Matrix
-    vec4 previousPos = prevViewProjectionMatrix * vec4(in_pos, 1.0);
-    
-    // Berechne den Motion-Vector (Bewegung in Screenspace)
-    MotionVectorIn = (currentPos.xy / currentPos.w) - (previousPos.xy / previousPos.w);
 }
