@@ -1,0 +1,57 @@
+#version 460 core
+
+layout(vertices=3) out;
+
+layout (location = 0) uniform mat4x4 model_transform;
+layout (location = 4) uniform mat4x4 normal_transform;
+layout (location = 8) uniform mat4x4 camera_transform;
+layout (location = 12) uniform mat4x4 camera_perspective;
+layout (location = 16) uniform vec3 camera_pos;
+
+//layout (location = 2) in vec4 out_color[];
+layout (location = 3) in vec2 out_uv[]; // Eingehende UV-Koordinaten vom Vertex Shader
+out vec4 tcs_col[];
+out vec2 TextureCoord[]; // Weitergabe der UV-Koordinaten
+
+uniform float heightScale;
+uniform uint materialFlags;
+uniform float customMetallicValue;
+uniform float customRoughnessValue;
+
+void main() {
+    // Leite Positionen und UV-Koordinaten weiter
+    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+    TextureCoord[gl_InvocationID] = out_uv[gl_InvocationID];
+    //tcs_col[gl_InvocationID] = out_color[gl_InvocationID];
+    tcs_col[gl_InvocationID] = vec4(0.8, 0, 0, 1);
+
+    if (gl_InvocationID == 0) {
+        // Berechnung der Tessellation-Level für Dreiecke
+        const int MIN_TESS_LEVEL = 16;
+        const int MAX_TESS_LEVEL = 64;
+        const float MIN_DISTANCE = 20.0;
+        const float MAX_DISTANCE = 800.0;
+
+        vec4 eyeSpacePos0 = camera_transform * model_transform * gl_in[0].gl_Position;
+        vec4 eyeSpacePos1 = camera_transform * model_transform * gl_in[1].gl_Position;
+        vec4 eyeSpacePos2 = camera_transform * model_transform * gl_in[2].gl_Position;
+
+        // Berechne die "Distanz" zwischen Kamera und Kontrollpunkten
+        float dist0 = clamp((abs(eyeSpacePos0.z) - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE), 0.0, 1.0);
+        float dist1 = clamp((abs(eyeSpacePos1.z) - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE), 0.0, 1.0);
+        float dist2 = clamp((abs(eyeSpacePos2.z) - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE), 0.0, 1.0);
+
+        // Interpolierte Tessellation-Level
+        float tessLevel0 = mix(MAX_TESS_LEVEL, MIN_TESS_LEVEL, dist0);
+        float tessLevel1 = mix(MAX_TESS_LEVEL, MIN_TESS_LEVEL, dist1);
+        float tessLevel2 = mix(MAX_TESS_LEVEL, MIN_TESS_LEVEL, dist2);
+
+        // Tessellation-Level setzen
+        gl_TessLevelOuter[0] = tessLevel0;
+        gl_TessLevelOuter[1] = tessLevel1;
+        gl_TessLevelOuter[2] = tessLevel2;
+        gl_TessLevelInner[0] = max(tessLevel0, max(tessLevel1, tessLevel2));
+        gl_TessLevelInner[1] = max(tessLevel0, tessLevel2);
+
+    }
+}

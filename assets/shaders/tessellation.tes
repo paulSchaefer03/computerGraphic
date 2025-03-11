@@ -1,0 +1,74 @@
+#version 460 core
+
+layout(triangles, equal_spacing, ccw) in;
+
+uniform sampler2D heightMap;
+
+layout (location = 0) uniform mat4x4 model_transform;
+layout (location = 4) uniform mat4x4 normal_transform;
+layout (location = 8) uniform mat4x4 camera_transform;
+layout (location = 12) uniform mat4x4 camera_perspective;
+layout (location = 16) uniform vec3 camera_pos;
+
+in vec4 tcs_col[];
+in vec2 TextureCoord[]; // Eingehende UV-Koordinaten vom TCS
+out vec4 tes_col;
+out float Height;
+
+out vec3 fragTessPosition;
+out vec3 fragTessNormal;
+out vec2 fragTessUV;
+
+uniform float heightScale;
+uniform uint materialFlags;
+uniform float customMetallicValue;
+uniform float customRoughnessValue;
+
+
+void main() {
+    // Baryzentrische Koordinaten der Tessellation
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+    float w = gl_TessCoord.z;
+
+    tes_col = tcs_col[0] * gl_TessCoord.x +
+          tcs_col[1] * gl_TessCoord.y +
+          tcs_col[2] * gl_TessCoord.z;
+
+    // Interpoliere die UV-Koordinaten
+    vec2 texCoord = TextureCoord[0] * u + TextureCoord[1] * v + TextureCoord[2] * w;
+
+    // Höhe aus der Height Map lesen
+    Height = (texture(heightMap, texCoord).r * 2.0 - 1.0) * heightScale;
+
+    // Interpolation der Positionen
+    vec4 p0 = gl_in[0].gl_Position;
+    vec4 p1 = gl_in[1].gl_Position;
+    vec4 p2 = gl_in[2].gl_Position;
+
+    vec4 position = p0 * u + p1 * v + p2 * w;
+
+    // Normale berechnen
+    vec4 edge1 = p1 - p0;
+    vec4 edge2 = p2 - p0;
+    vec4 normal = normalize(vec4(cross(edge1.xyz, edge2.xyz), 0.0));
+
+    //Verforme die Position basierend auf der Höhe
+    Height = mix(Height, 0.0, 0.01);
+    vec4 displacedPosition = position + vec4(normal.xyz * Height, 0.0);
+    
+
+
+
+    fragTessPosition = (model_transform * displacedPosition).xyz;
+    fragTessNormal = normalize((model_transform * vec4(normal.xyz, 0.0)).xyz);
+ 
+    vec2 newUV = TextureCoord[0] * gl_TessCoord.x + 
+                TextureCoord[1] * gl_TessCoord.y + 
+                TextureCoord[2] * gl_TessCoord.z;
+
+    fragTessUV = newUV;
+
+    // Endgültige Position berechnen
+    gl_Position = camera_perspective * camera_transform * model_transform * displacedPosition;
+}
