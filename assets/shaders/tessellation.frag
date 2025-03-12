@@ -23,7 +23,8 @@ in vec3 fragTessNormal;
 in vec2 fragTessUV;
 in float Height;
 // Outputs
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 BrightColor; // Helligkeit
 
 // Uniforms
 layout (location = 16) uniform vec3 camera_pos;        // Kamera-Position
@@ -369,7 +370,15 @@ void main() {
 
     vec3 color = ambient + Lo;
 
-    // HDR Tone Mapping und Gamma-Korrektur
+    //Test Helligkeit und Gausian Blur
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722)); // Helligkeitsberechnung
+    if (brightness > 1.0) {
+        BrightColor = vec4(color, 1.0); // Nur helle Bereiche speichern
+    } else {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0); // Sonst Schwarz speichern
+    }
+
+    // HDR Tone Mapping und Gamma-Korrektur wird in Post-Processing durchgeführt
     //color = color / (color + vec3(1.0));
     //color = pow(color, vec3(1.0 / 2.2));
     //gl_FragDepth = gl_FragCoord.z;

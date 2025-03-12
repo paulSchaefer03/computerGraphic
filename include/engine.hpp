@@ -43,9 +43,13 @@ struct Engine {
         _pipeline_bloom_blur.init("../assets/shaders/bloom_blur.vert", "../assets/shaders/bloom_blur.frag");
         
         // create light and its shadow map
-        _lights[0].init({+1.0, +3.0, -0.5}, {.992, .984, .827}, 100);
-        _lights[1].init({+3.0, +1.5, +4.0}, {3.992, 4.984, 2.827}, 100);
-        _lights[2].init({-5.0, +1.6, +2.9}, {12.0, 12.0, 12.0}, 100);
+        //_lights[0].init({+1.0, +3.0, -0.5}, {.992, .984, .827}, 100);
+        //_lights[1].init({+3.0, +1.5, +4.0}, {3.992, 4.984, 2.827}, 100);
+        //_lights[2].init({-5.0, +1.6, +2.9}, {12.0, 12.0, 12.0}, 100);
+        _lights.emplace_back().init({+1.0, +3.0, -0.5}, {.992, .984, .827}, 100);
+        _lights.emplace_back().init({+3.0, +1.5, +4.0}, {3.992, 4.984, 2.827}, 100);
+        _lights.emplace_back().init({-5.0, +1.6, +2.9}, {8.0, 8.0, 8.0}, 100);
+
         // create HDR environment map
         _hdr.init("../assets/textures/HDR/Old-Train-Nuernberg-4K.hdr");
         //other hdr textures
@@ -243,8 +247,8 @@ struct Engine {
     void execute_frame() {
         static std::vector<Model> models_without_lights(_models.begin(), _models.end() - _lights.size());
         // handle all the inputs such as camera movement
-        //ImGUI for all Models without lights
-        _imGuiManager.newFrame(_models, _lights.size(), _postProcess);
+        //ImGUI for all Models without lights and lights extra
+        _imGuiManager.newFrame(_models, _postProcess, _lights.size(), _lights);
         execute_input();
 
         //Save the old view projection matrix for motion blur
@@ -447,7 +451,7 @@ struct Engine {
     Pipeline _pipeline_motion_blur;
     Pipeline _pipeline_bloom_blur;
 
-    std::array<Light, 3> _lights;
+    std::vector<Light> _lights;
     std::vector<Model> _models;
     // other
     bool _shadows_dirty = false;

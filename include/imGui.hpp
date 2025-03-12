@@ -17,11 +17,12 @@ struct ImGuiManager {
         ImGui_ImplOpenGL3_Init();
     }
     
-    void newFrame(std::vector<Model>& models, int number_of_lights, PostProcess& postProcess) {
+    void newFrame(std::vector<Model>& models, PostProcess& postProcess, int number_of_lights, std::vector<Light>& lights) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         renderUI(models, number_of_lights);
+        lightingOptions(lights);
         postProcessingOptions(postProcess);
         ImGui::Render();
     }
@@ -40,10 +41,24 @@ struct ImGuiManager {
         ImGui::DestroyContext();
     }
 
+    void lightingOptions(std::vector<Light>& lights) {
+        ImGui::Begin("Lighting Options");
+        for (size_t i = 0; i < lights.size(); ++i) {
+            ImGui::Text("Light %d", i);
+            ImGui::SliderFloat(("Light " + std::to_string(i) + " ColorR").c_str(), &lights[i]._color.r, 0, 20);
+            ImGui::SliderFloat(("Light " + std::to_string(i) + " ColorG").c_str(), &lights[i]._color.g, 0, 20);
+            ImGui::SliderFloat(("Light " + std::to_string(i) + " ColorB").c_str(), &lights[i]._color.b, 0, 20);
+            ImGui::SliderFloat(("Light " + std::to_string(i) + " Range").c_str(), &lights[i]._range, 0, 100);
+        }
+        ImGui::End();
+    }
+
     void postProcessingOptions(PostProcess& postProcess) {
         ImGui::Begin("Post-Processing Options");
         ImGui::SliderFloat("Motion Blur Sample", &postProcess._motionBlurSamples, 4.0f, 128.0f);
         ImGui::SliderFloat("Motion Blur Strength", &postProcess._motionBlurStrength, 0.0001f, 0.05f);
+        ImGui::SliderFloat("Exposure", &postProcess._exposure, 0.1f, 5.0f);
+        ImGui::SliderFloat("Gamma", &postProcess._gamma, 0.1f, 5.0f);
         ImGui::End();
     }
     

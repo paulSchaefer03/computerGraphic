@@ -122,8 +122,8 @@ struct PostProcess {
     GLuint _motionVectorTexture;
     float _aberrationStrength = 0.002;
     float _motionBlurStrength = 0.00125;
-    float _motionBlurSamples = 8;
-    float _exposure = 1.0;
+    float _motionBlurSamples = 32;
+    float _exposure = 0.75;
     float _gamma = 1.0;
 
 };
