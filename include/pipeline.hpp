@@ -88,6 +88,11 @@ struct Pipeline {
         glUseProgram(_shader_program);
     }
 
+    void destroy() {
+        glDeleteProgram(_shader_program);
+        glDeleteFramebuffers(1, &_framebuffer);
+    }
+
     GLuint _shader_program;
     GLuint _framebuffer = 0;
 };

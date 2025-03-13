@@ -61,6 +61,7 @@ struct HDR {
             Cube cube(1.0);
             renderCube(cube);
         }
+        printf("Environment Map created\n");
     }
     //Irradiance Map erstellen wichtig zuerst bindAndCreateEnvMap aufrufen
     void bindAndCreateIrradianceMap(GLuint program_id){
@@ -89,7 +90,7 @@ struct HDR {
             Cube cube(1.0);
             renderCube(cube);
         }
-
+        printf("Irradiance Map created\n");
         glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 
         // Clean up
@@ -112,6 +113,7 @@ struct HDR {
         glDeleteFramebuffers(1, &_captureFBO);
         glDeleteRenderbuffers(1, &_captureRBO);
     }
+
     // Pre-Filtered Environment Map (Cube Map mit Mipmaps)
     void createPrefilterEnvMap(GLuint program_id) {
         glGenFramebuffers(1, &_captureFBO);
@@ -161,7 +163,8 @@ struct HDR {
         }
     
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        printf("Prefiltered environment map created.\n");
+        printf("Pre-Filtered Environment Map created\n");
+
     }
     //BRDF LUT 2D Texture
     void ceateBRDFLUT() {
@@ -189,7 +192,7 @@ struct HDR {
             printf("Framebuffer-Status ist nicht vollständig: 0x%x\n", status);
         }
 
-        // BRDF-LUT-Daten abrufen (Testzwecke, weil Probleme mit der Textur)
+        // BRDF-LUT-Daten abrufen (und Textur verkleinern, weil sie unabhänge der Auflösung immer einen Schwarzen Rand hat (kein Plan warum))
         int width = 1024; // oder die tatsächliche Breite der BRDF-LUT
         int height = 1024; // oder die tatsächliche Höhe der BRDF-LUT
    
@@ -201,13 +204,13 @@ struct HDR {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
  
-        // 2. Alte Textur auslesen
+        // Alte Textur auslesen
         int srcWidth = 1024, srcHeight = 1024;
         std::vector<float> oldData(srcWidth * srcHeight * 2);
         glBindTexture(GL_TEXTURE_2D, _brdf_lut_texture);
         glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, oldData.data());
 
-        // 3. Pixel extrahieren
+        // Pixel extrahieren(die Korrekt sind)
         int dstWidth = 512, dstHeight = 512;
         std::vector<float> newData(dstWidth * dstHeight * 2);
 
@@ -223,38 +226,15 @@ struct HDR {
             }
         }
 
-        // 4. Neue Pixel in die neue Textur hochladen
+        // Neue Pixel in die neue Textur hochladen
         glBindTexture(GL_TEXTURE_2D, _corrected_brdf_lut_texture);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, dstWidth, dstHeight, GL_RG, GL_FLOAT, newData.data());
       
-        //Korrigierte version auslesen
-        std::vector<float> testData(dstWidth * dstWidth * 2);
-        glBindTexture(GL_TEXTURE_2D, _corrected_brdf_lut_texture);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, testData.data());
+        // Alte Textur löschen
+        glDeleteTextures(1, &_brdf_lut_texture);
 
-        int counterBlack = 0;
-        int counterNotBlack = 0;
-        // Prüfen und Werte in der Konsole ausgeben
-        for (int y = 0; y < 512; y++) {
-            for (int x = 0; x < 512; x++) {
-                int index = (y * 512 + x) * 2; // 2 Kanäle pro Pixel
-                float r = testData[index];     // R-Wert
-                float g = testData[index + 1]; // G-Wert
-
-                // Bedingung zum Filtern des schwarzen Randes
-                if (r == 0.0f && g == 0.0f) {
-                    counterBlack++;
-                } else {
-                    counterNotBlack++;
-                }
-            }
-        } 
-
-        printf("Schwarze Pixel: %d\n", counterBlack);
-        printf("Nicht-schwarze Pixel: %d\n", counterNotBlack);
-    
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        printf("BRDF lut created.\n");
+        // Neue Textur prüfen
+        checkPreComputeMap(_corrected_brdf_lut_texture, "BRDF LUT", 512, 512, 2);
     }
 
     void bindPrefilterEnvMap(GLuint program_id){
@@ -273,6 +253,43 @@ struct HDR {
         glActiveTexture(GL_TEXTURE0); // Textur-Einheit 0 reservieren
         glBindTexture(GL_TEXTURE_CUBE_MAP, _envCubeMap); // Die Environment Map binden
         glUniform1i(glGetUniformLocation(program_id, "skybox"), 0);  
+    }
+
+    //Optional but good to have since the maps are precomputed and there where serveral bugs in the past
+    void checkPreComputeMap(GLuint textureID, const char* name, int width, int height, int channels) {
+
+        // Textur auslesen
+        std::vector<float> testData(width * height * channels);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glGetTexImage(GL_TEXTURE_2D, 0, (channels == 4 ? GL_RGBA : (channels == 3 ? GL_RGB : GL_RG)), GL_FLOAT, testData.data());
+
+        int counterBlack = 0;
+        int counterNotBlack = 0;
+        // Prüfen und Werte in der Konsole ausgeben
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+            bool isBlack = true;
+            for (int c = 0; c < channels; c++) {
+                int index = (y * width + x) * channels + c;
+                if (testData[index] != 0.0f) {
+                isBlack = false;
+                break;
+                }
+            }
+            if (isBlack) {
+                counterBlack++;
+            } else {
+                counterNotBlack++;
+            }
+            }
+        }
+
+        printf("Schwarze Pixel in %s: %d\n", name, counterBlack);
+        printf("Nicht-schwarze Pixel in %s: %d\n", name, counterNotBlack);
+    
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        printf("%s created.\n", name);
+        
     }
 
     Texture _hdr;

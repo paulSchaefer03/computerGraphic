@@ -27,7 +27,7 @@ struct PostProcess {
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, window_width, window_height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
     
-        // Wir haben zwei Render-Targets
+        // Wir haben zwei Render-Targets erspart einen weiteren Render Pass
         GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
         glDrawBuffers(2, attachments);
     
@@ -108,7 +108,12 @@ struct PostProcess {
     }
 
     void destroy() {
-
+        glDeleteFramebuffers(1, &_postProcessFBO);
+        glDeleteTextures(2, _postProcessTextures);
+        glDeleteFramebuffers(2, _pingpongFBO);
+        glDeleteTextures(2, _pingpongColorBuffers);
+        glDeleteTextures(1, &_motionVectorTexture);
+        glDeleteFramebuffers(1, &_motionVectorFBO);
     }
 
     // Post Processing
@@ -121,7 +126,7 @@ struct PostProcess {
     GLuint _motionVectorFBO;
     GLuint _motionVectorTexture;
     float _aberrationStrength = 0.002;
-    float _motionBlurStrength = 0.00125;
+    float _motionBlurStrength = 0.001;
     float _motionBlurSamples = 32;
     float _exposure = 0.75;
     float _gamma = 1.0;
