@@ -71,7 +71,7 @@ bool customMetallic = (materialFlags & CUSTOM_METALLIC) != 0;
 bool customRoughness = (materialFlags & CUSTOM_ROUGHNESS) != 0;
 bool hasHeightMap = (materialFlags & HAS_HEIGHT_MAP) != 0;
 
-//TEST normal
+//Other Normal Calculation
 vec3 getNormalFromMap(vec2 texCoords)
 {
     vec3 tangentNormal = texture(normalMap, texCoords).xyz * 2.0 - 1.0;
@@ -170,7 +170,7 @@ vec3 blinnPhongShading(vec4 textureColor) {
         float light_contribution = 1.0;
         //if (depth_current - bias > depth_real) light_contribution = 0.0;
 /*
-        // percentage-closer-filter
+        // percentage-closer-filter not needed
         float samples = 4;
         float offset = 0.01;
         float shadow = 0.0;
@@ -426,31 +426,11 @@ void main() {
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0); // Sonst Schwarz speichern
     }
 
-    // HDR Tone Mapping und Gamma-Korrektur
+    // HDR Tone Mapping und Gamma-Korrektur wird in Postprocessing durchgeführt
     //color = color / (color + vec3(1.0));
     //color = pow(color, vec3(1.0 / 2.2));
 
     out_color = vec4(color, 1.0);
 
-/*     vec3 fragToLight = in_pos - lights[0].pos;
-    float closestDepth = texture(tex_shadows[0], fragToLight).r;
-
-    out_color = vec4(vec3(closestDepth), 1.0); 
-    */
-    
-/*     shadow_factor = 1.0; 
-    
-
-    for (int i = 0; i < LIGHT_COUNT; i++) {
-        vec3 fragToLight = in_pos - lights[i].pos;
-        float closestDepth = texture(tex_shadows[i], fragToLight).r; // Depth-Wert aus Shadow-Map
-        float currentDepth = length(fragToLight) / lights[i].range;
-        
-        if (currentDepth > closestDepth + 0.005) {
-            shadow_factor *= 0.5; // Schatten abdunkeln
-        }
-    } 
-*/
-    //out_color = vec4(vec3(shadow_factor), 1.0);  
 
 }

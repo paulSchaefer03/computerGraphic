@@ -20,7 +20,7 @@ void main()
     vec3 hdrColor = texture(skybox, TexCoords).rgb;
     // ACES-Filmic-Tonemapping anwenden
     vec3 mappedColor = ACESFilmToneMapping(hdrColor);
-    // Gamma-Korrektur
+    // Gamma-Korrektur done in post-processing
     //mappedColor = pow(mappedColor, vec3(1.0 / 2.2));
     FragColor = vec4(mappedColor, 1.0);
 }

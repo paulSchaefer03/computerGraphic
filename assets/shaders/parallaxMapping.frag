@@ -73,6 +73,4 @@ void main()
     vec3 V = normalize(camera_pos - in_pos);
     vec2 texCoords = ParallaxMapping(in_uv,  V);
 
-
-
 }

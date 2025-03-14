@@ -381,15 +381,8 @@ void main() {
     // HDR Tone Mapping und Gamma-Korrektur wird in Post-Processing durchgeführt
     //color = color / (color + vec3(1.0));
     //color = pow(color, vec3(1.0 / 2.2));
-    //gl_FragDepth = gl_FragCoord.z;
-    //out_color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);
+
     out_color = vec4(color, 1.0);
 
-
-    //gl_FragDepth = 0.5; // Erzwinge mittlere Tiefe
-    //gl_FragDepth = gl_FragCoord.z;
-    //out_color = vec4(1.0, 0.0, 0.0, 1.0); // Rot einfärben
-    //out_color = vec4(fragTessPosition * 0.5 + 0.5, 1.0);
-    //out_color = vec4(Height, Height, Height, 1.0);
 
 }
