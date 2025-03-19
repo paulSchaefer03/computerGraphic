@@ -6,4 +6,4 @@ Standard Fenstergröße 1920x1080p, in Engine befindet sich _window_width und _w
 
 Aufgrund da die Texturen groß sind, kann es zu Problemen kommen. Falls dem so ist einfach ein paar Modelle in engine.hpp auskommentieren.
 
-Ein paar Demo aufnahmen sind im Ordner /demo zu finden.Texturen auf Google Drive
+Ein paar Demo aufnahmen sind im Ordner /demo zu finden.
