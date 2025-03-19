@@ -38,8 +38,9 @@ struct Model {
     }
     void initPBR(Mesh::Primitive primitive, const float size, const char* albedo_path = nullptr, const char* normal_path = nullptr,
         const char* metallic_path = nullptr, const char* roughness_path = nullptr, const char* ao_path = nullptr, const char* height_path = nullptr, 
-        const uint32_t eSphereStacks = 32, const uint32_t eSphereSlices = 32) {
+        const bool useTesselation = false, const uint32_t eSphereStacks = 32, const uint32_t eSphereSlices = 32) {
         _meshes.emplace_back();
+        _useTesselation = useTesselation;
         switch (primitive) {
             case Mesh::eCube: _meshes.front().init(); break;
             case Mesh::eSphere: _meshes.front().initESphere(eSphereStacks, eSphereSlices); break;
@@ -55,7 +56,7 @@ struct Model {
         else                         {ao._texture = 0;}
         if(albedo_path != nullptr)   {albedo.initPBRTexture(albedo_path, GL_SRGB8_ALPHA8, GL_RGBA, GL_REPEAT, 4, true);}
         else                         {albedo._texture = 0;}
-        if(normal_path != nullptr)   {printf("Test"); normal.initPBRTexture(normal_path, GL_RGB8, GL_RGB, GL_REPEAT, 3, true);}
+        if(normal_path != nullptr)   {normal.initPBRTexture(normal_path, GL_RGB8, GL_RGB, GL_REPEAT, 3, true);}
         else                         {normal._texture = 0;}
         if(metallic_path != nullptr) {metallic.init(metallic_path);}
         else                         {metallic._texture = 0;}
@@ -90,6 +91,7 @@ struct Model {
         if(height_path != nullptr){
             _materials.back()._materialFlags |= Material::HAS_HEIGHT_MAP;
         }
+        printf("Model %s initialized\n", albedo_path); 
     }
 
     void init(std::string model_path) {
@@ -412,6 +414,7 @@ void draw(bool color = true, bool pbr = false, GLuint program_id = 0, bool custo
     float _roughness = 0.0;
     bool _useCustomMetallic = false;
     bool _useCustomRoughness = false;
+    bool _useTesselation = false;
     std::vector<Mesh> _meshes;
     std::vector<Material> _materials;
     std::vector<Texture> _textures; // TODO: move into material

@@ -89,7 +89,8 @@ struct Engine {
             "../assets/textures/PBR/cgaxis_tree_roots_38_82_8K/tree_roots_38_82_metallic.jpg",
             "../assets/textures/PBR/cgaxis_tree_roots_38_82_8K/tree_roots_38_82_roughness.jpg", 
             "../assets/textures/PBR/cgaxis_tree_roots_38_82_8K/tree_roots_38_82_ao.jpg",
-            "../assets/textures/PBR/cgaxis_tree_roots_38_82_8K/tree_roots_38_82_height.jpg"//, 96, 96 
+            "../assets/textures/PBR/cgaxis_tree_roots_38_82_8K/tree_roots_38_82_height.jpg",
+            true // Tessellation aktivieren
         );
         _models.back()._transform._position = glm::vec3(-6, 0, 1.5);
         _models.back()._transform._rotation = glm::vec3(1.5707963, 0, 0);//90 degrees in radians(rotation in x-axis)
@@ -111,7 +112,6 @@ struct Engine {
             "../assets/textures/PBR/subtle-black-granite-bl/subtle-black-granite_roughness.png", 
             "../assets/textures/PBR/subtle-black-granite-bl/subtle-black-granite_ao.png",
             "../assets/textures/PBR/subtle-black-granite-bl/subtle-black-granite_height.png"
-            //"../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_height.jpg"
         );
         _models.back()._transform._position = glm::vec3(-2, 0, 1.5);
         _models.back()._transform._rotation = glm::vec3(1.5707963, 0, 0);//90 degrees in radians
@@ -121,7 +121,8 @@ struct Engine {
             "../assets/textures/PBR/rounded-metal-cubes-bl/rounded-metal-cubes_metallic.png",
             "../assets/textures/PBR/rounded-metal-cubes-bl/rounded-metal-cubes_roughness.png", 
             "../assets/textures/PBR/rounded-metal-cubes-bl/rounded-metal-cubes_ao.png",
-            "../assets/textures/PBR/rounded-metal-cubes-bl/rounded-metal-cubes_height.png" 
+            "../assets/textures/PBR/rounded-metal-cubes-bl/rounded-metal-cubes_height.png",
+            true // Tessellation aktivieren 
         );
         _models.back()._transform._position = glm::vec3(0, 0, 1.5);
         _models.emplace_back().initPBR(Mesh::eSphere, 0.5, 
@@ -150,7 +151,8 @@ struct Engine {
             "../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_metallic.jpg",
             "../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_roughness.jpg", 
             "../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_ao.jpg",
-            "../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_height.jpg"
+            "../assets/textures/PBR/cgaxis_violet_crystal_43_04_8K/violet_crystal_43_04_height.jpg",
+            true // Tessellation aktivieren
             );
         _models.back()._transform._position = glm::vec3(-2, 0, -0.5);
         _models.back()._transform._rotation = glm::vec3(1.5707963, 0, 0);//90 degrees in radians
@@ -403,7 +405,7 @@ struct Engine {
             _camera.bind();
             // Modelle mit PBR rendern
             for (size_t i = 0; i < _models.size(); i++) {
-                if(i != 3 && i != 0 && i != 6) {
+                if(!_models[i]._useTesselation) {
                     //Draw call etwas Komplizierter, da wir mehrere Texturen + evtl. Tesselation haben
                     _models[i].draw(true, true, _pipeline_pbr._shader_program, true, true, false);                
                 }                 
@@ -428,7 +430,7 @@ struct Engine {
             }
             _camera.bind();
             for (size_t i = 0; i < _models.size(); i++) {
-                if(i == 3 || i == 0 || i == 6) {
+                if(_models[i]._useTesselation) {
                     _models[i].draw(true, true, _pipeline_tessellation._shader_program, true, true, true);
                 }
             } 
